@@ -1,9 +1,37 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import loginImage from '../../assets/images/login/login.svg'
+import { useContext } from 'react';
+import { AuthContext } from '../Provider/AuthProvider';
+import axios from 'axios';
 const Login = () => {
-    const handleLogin = e =>{
-        e.preventDefault();
+    const { singInUser } = useContext(AuthContext);
+    const location = useLocation()
+    const navigate = useNavigate()
 
+    const handleLogin = e => {
+        e.preventDefault();
+        const form = e.target;
+        const email = form.email.value;
+        const password = form.password.value;
+        console.log(email, password);
+        singInUser(email, password)
+            .then(result => {
+                const loggedInUser = result.user;
+                console.log(loggedInUser);
+                const user = { email }
+                
+
+                axios.post('http://localhost:5001/jwt', user, { withCredentials: true })
+                    .then(res => {
+                        console.log(res.data)
+                        if(res.data?.success){
+                            navigate(location?.state ? location.state : '/')
+                        }
+                    })
+            })
+            .catch(error => {
+                console.log(error.message)
+            })
     }
     return (
         <div className="hero min-h-screen bg-base-200 mb-12">
@@ -18,7 +46,7 @@ const Login = () => {
                             <label className="label">
                                 <span className="label-text">Email</span>
                             </label>
-                            <input type="email" name="name" placeholder="email" className="input input-bordered" required />
+                            <input type="email" name="email" placeholder="email" className="input input-bordered" required />
                         </div>
                         <div className="form-control">
                             <label className="label">
